@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
     char *seq = "GCC";
     char *str;
     int count;
+    double tempo = 0;
+    tempo = MPI_Wtime();
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -77,9 +79,16 @@ int main(int argc, char **argv) {
     // Chama a função countOccurrences para contar as ocorrências da sequência
     count = countOccurrences(str, seq, size);
 
+    tempo = MPI_Wtime() - tempo;
+    printf("\ntempo do no %d: %f\n", rank, tempo);
+
+    double tempoTotal = 0;
+    MPI_Reduce(&tempo, &tempoTotal, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
     // Imprime o resultado no processo principal
     if (rank == 0) {
-        printf("O número de ocorrências de '%s' é: %d\n", seq, count);
+        printf("\nO número de ocorrências de '%s' é: %d\n", seq, count);
+        printf("\ntempo total: %f\n", tempoTotal);
     }
 
     // Libera a memória alocada
