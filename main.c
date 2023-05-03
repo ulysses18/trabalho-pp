@@ -25,7 +25,7 @@ int countOccurrences(char *str, char *seq) {
 
 int main() {
     char *filename = "entrada.txt";
-    char *seq = "GCC";
+    char *seq = "TACCGCTACGTCGTAGCTAGCTAGCTACGAGCGCTAGCGACGAGC";
     char *str;
     int count;
 
@@ -62,7 +62,7 @@ int main() {
     count = countOccurrences(str, seq);
 
     // Imprime o resultado
-    printf("O número de ocorrências de '%s' em '%s' é: %d\n", seq, str, count);
+    printf("O número de ocorrências de '%s' é: %d\n", seq, count);
 
     // Libera a memória alocada
     free(str);

@@ -29,8 +29,8 @@ int countOccurrences(char *str, char *seq, int size) {
 
 int main(int argc, char **argv) {
     int rank, size;
-    char *filename = "entrada.txt";
-    char *seq = "GCC";
+    char *filename = argv[1];
+    char *seq = "TACCGCTACGTCGTAGCTAGCTAGCTACGAGCGCTAGCGACGAGC";
     char *str;
     int count;
     double tempo = 0;
@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    // Abre o arquivo em modo de leitura
     FILE *fp = fopen(filename, "r");
     if (fp == NULL) {
         printf("Erro ao abrir o arquivo.\n");
@@ -48,52 +47,36 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    // Obtém o tamanho do arquivo
     fseek(fp, 0L, SEEK_END);
     int fileSize = ftell(fp);
     rewind(fp);
-
-    // Aloca memória para armazenar a parte do arquivo correspondente a este processo
-    int blockSize = fileSize / size; // pega qual vai ser o tamanho do bloco
+    
+    int blockSize = fileSize / size; 
     if (rank == size - 1) {
-        blockSize += fileSize % size; // se for o mestre é o tamanho do bloco somado ao resto caso a divisao nao for exata
+        blockSize += fileSize % size; 
     }
-    str = (char*) malloc(blockSize + 1); // aloca memoria de acordo com o tamanho bloco que o nó recebe
-
-    // Lê a parte do arquivo correspondente a este processo
+    str = (char*) malloc(blockSize + 1); 
+    
     fseek(fp, rank * blockSize, SEEK_SET);
     if (fgets(str, blockSize + 1, fp) == NULL) {
         printf("Erro ao ler o arquivo.\n");
         MPI_Finalize();
         exit(EXIT_FAILURE);
     }
-
-    // Fecha o arquivo
+    
     fclose(fp);
-
-    // Remove o caractere de quebra de linha da string, se existir
+    
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1] = '\0';
     }
-
-    // Chama a função countOccurrences para contar as ocorrências da sequência
     count = countOccurrences(str, seq, size);
-
     tempo = MPI_Wtime() - tempo;
     printf("\ntempo do no %d: %f\n", rank, tempo);
 
-    double tempoTotal = 0;
-    MPI_Reduce(&tempo, &tempoTotal, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    // Imprime o resultado no processo principal
     if (rank == 0) {
         printf("\nO número de ocorrências de '%s' é: %d\n", seq, count);
-        printf("\ntempo total: %f\n", tempoTotal);
     }
-
-    // Libera a memória alocada
     free(str);
-
     MPI_Finalize();
     return 0;
 }
